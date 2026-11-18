@@ -33,16 +33,42 @@
   var clamp = function (v, lo, hi) { return Math.max(lo, Math.min(hi, v)); };
 
   // The model's own formula, run in the page so the reader can check the board's number.
-  var ageTilt = function (ageDays) {
-    var days = ageDays === null || ageDays === undefined ? model.age_unknown_days : Math.min(ageDays, model.age_cap_days);
-    return 0.9 + 0.2 * (days / model.age_cap_days);
+  // Launch odds: a straight line in log age between the band medians, flat outside the
+  // outer medians, the grand rate when the age is unknown — times the category factor,
+  // which is what age alone cannot explain — the same rule model.ts uses.
+  var launchOddsParts = function (ageDays, category) {
+    var bands = model.launch_odds_bands;
+    var base;
+    if (ageDays === null || ageDays === undefined) base = model.launch_odds_unknown;
+    else {
+      var x = Math.log(Math.max(ageDays, 1));
+      var xs = bands.map(function (b) { return Math.log(b[0]); });
+      var ys = bands.map(function (b) { return b[1]; });
+      if (x <= xs[0]) base = ys[0];
+      else if (x >= xs[xs.length - 1]) base = ys[ys.length - 1];
+      else {
+        base = ys[ys.length - 1];
+        for (var i = 0; i < xs.length - 1; i++) {
+          if (x >= xs[i] && x <= xs[i + 1]) {
+            var t = (x - xs[i]) / (xs[i + 1] - xs[i]);
+            base = ys[i] + t * (ys[i + 1] - ys[i]);
+            break;
+          }
+        }
+      }
+    }
+    var cat = category ? (model.launch_odds_cat_multipliers[category] || 1) : 1;
+    return { odds: Math.max(0.02, Math.min(0.98, base * cat)), age: base, cat: cat };
+  };
+  var launchOdds = function (ageDays, category) {
+    return launchOddsParts(ageDays, category).odds;
   };
   var impliedOf = function (row) {
     var change = clamp(row.change_7d === null || row.change_7d === undefined ? 0 : row.change_7d, model.growth_floor, model.growth_cap);
     var tvlAdj = row.tvl / (1 + change / 100);
     if (!(tvlAdj > 0)) return 1;
     var mult = row.category ? (model.category_multipliers[row.category] || 1) : 1;
-    return Math.max(1, Math.round(model.scale * Math.pow(tvlAdj, model.slope) * mult * ageTilt(row.age_days)));
+    return Math.max(1, Math.round(model.scale * Math.pow(tvlAdj, model.slope) * mult * launchOdds(row.age_days, row.category)));
   };
 
   // ---------------------------------------------------------------- state
@@ -87,6 +113,7 @@
   $('formula').textContent = model.formula + '   |   TVL_adj = TVL \u00f7 (1 + clamp(change_7d, \u221250%, +50%) \u00f7 100)';
   var fitItems = [
     [String(model.fit_n), 'tokenized protocols fitted'],
+    [String(model.fit_trimmed_n), 'extreme-ratio protocols trimmed'],
     [model.fit_r2.toFixed(2), 'R\u00b2 of the log-log fit'],
     [model.slope.toFixed(2) + '  (t = ' + model.fit_slope_t + ')', 'elasticity of value to TVL'],
     [model.fit_residual_sd.toFixed(2), 'residual SD, log points'],
@@ -235,7 +262,8 @@
       row('7-day change', pct(r.change_7d) + (r.change_7d !== null && (r.change_7d < model.growth_floor || r.change_7d > model.growth_cap) ? ' (clamped to ' + pct(change) + ')' : ''));
       row('Growth-adjusted TVL', money(tvlAdj));
       row('Category multiplier (' + (r.category || 'none') + ')', '\u00d7' + mult.toFixed(3));
-      row('Age tilt (' + ageText(r.age_days) + ')', '\u00d7' + ageTilt(r.age_days).toFixed(3));
+      var parts = launchOddsParts(r.age_days, r.category);
+      row('Launch odds (' + ageText(r.age_days) + ' listed)', '\u00d7' + parts.odds.toFixed(3) + ' \u00b7 ' + Math.round(parts.odds * 100) + '% chance of a token (age ' + Math.round(parts.age * 100) + '% \u00d7 ' + (r.category || 'no category') + ' \u00d7' + parts.cat.toFixed(2) + ')');
       row('Implied value', money(r.implied_value_usd));
       var recomputed = impliedOf(r);
       $('detail-check').textContent = recomputed === r.implied_value_usd
@@ -246,7 +274,7 @@
       row('TVL', money(r.tvl));
       row('Market cap / TVL', (r.mcap / Math.max(1, r.tvl)).toFixed(2) + '\u00d7');
       row('7-day change', pct(r.change_7d));
-      $('detail-check').textContent = 'This protocol already has a token, so it sits outside the farm board. It is here because its market cap is one of the 128 the model learned from.';
+      $('detail-check').textContent = 'This protocol already has a token, so it sits outside the farm board. It is one of the 128 tokenized protocols in the snapshot; the model fitted ' + model.fit_n + ' of them.';
     }
     var stepsEl = $('detail-steps');
     stepsEl.innerHTML = '';

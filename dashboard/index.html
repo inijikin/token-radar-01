@@ -20,7 +20,8 @@
       <p>Every protocol below records no token in the snapshot. Each is ranked by a fitted launch
       value: what the market has historically paid, per dollar of TVL, for protocols like it.
       The value comes from the snapshot&rsquo;s own tokenized protocols, not from a list of names.
-      The 40 watchlist protocols are all on the board; the rest earned their place by size.</p>
+      The 40 watchlist protocols are all on the board; the rest earned their place by fitted
+      value, and every row carries a seven-step farm plan for its own chain and kind.</p>
     </div>
     <dl class="facts" id="facts"></dl>
   </section>
@@ -75,13 +76,25 @@
     <div class="fit-grid" id="fit-grid"></div>
     <div class="scatter" id="scatter"></div>
     <p class="note">The scatter is the fit itself: each dot is one of the 128 tokenized protocols in the
-    snapshot, log market cap against log growth-adjusted TVL. The line is the fitted power law.
-    The fit is real but noisy (R&sup2; 0.20): it ranks protocols, it does not predict a price.
-    Momentum and age were tested as fitted factors and both failed — momentum&rsquo;s coefficient
-    is unstable across split halves, age adds nothing — so momentum only trims the TVL input and
-    age is a bounded judgment tilt of 0.9 to 1.1, stated as such. Category multipliers are
-    shrunk deviations of value per TVL, capped at 0.7 to 1.4; a category with no tokenized
-    member gets 1.000.</p>
+    snapshot, log market cap against log TVL of the token&rsquo;s whole family — the snapshot
+    splits one token&rsquo;s TVL across sibling deployments, so the fit pairs a token&rsquo;s market
+    cap with its family&rsquo;s total TVL, not one deployment&rsquo;s. The line is the fitted power
+    law. 17 dots are grey: protocols more than 3 log-points from the line — their market cap
+    per family TVL is twenty times the fitted value or a twentieth of it — so the fit runs
+    on the other 111 amber dots, and the slope barely moves (0.55 to 0.57), which is the
+    check the power law is not an artifact of the extremes. The fit is real but noisy
+    (R&sup2; 0.43): it ranks protocols, it does not predict a price. Launch odds are the
+    snapshot&rsquo;s own tokenization rate by age among protocols like the ones on this board,
+    shrunk toward the 50% average: 31% of protocols under six months have a token, 40% at
+    six months to two years, 60% at two to three years, 79% past three years — times a
+    category factor for what age alone cannot explain (Risk Curators 0.60: only 5 of 39
+    have a token; Lending 1.19; Basis Trading 1.19). Momentum and age-as-value were tested
+    as fitted factors and both failed — momentum&rsquo;s coefficient is unstable across split
+    halves, age adds nothing to value — so momentum only trims the TVL input and age
+    enters only through launch odds. Category multipliers are shrunk deviations of value
+    per TVL, capped at 0.7 to 1.4; a category with no fitted member gets 1.000. Board rows
+    are valued on their own TVL, so a protocol that is one deployment of a larger family
+    is valued conservatively.</p>
   </section>
 
   <footer class="foot">

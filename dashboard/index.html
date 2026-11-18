@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Token Radar — pre-token protocols ranked by fitted launch value</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<a class="skip" href="#board">Skip to the board</a>
+<div class="shell">
+  <header class="top">
+    <div class="brand"><span class="mark" aria-hidden="true"></span><span class="brand-name">TOKEN RADAR</span></div>
+    <div class="top-meta" id="top-meta"></div>
+  </header>
+
+  <section class="lede" aria-labelledby="page-title">
+    <div>
+      <h1 id="page-title">Which pre-token protocol is worth farming next?</h1>
+      <p>Every protocol below records no token in the snapshot. Each is ranked by a fitted launch
+      value: what the market has historically paid, per dollar of TVL, for protocols like it.
+      The value comes from the snapshot&rsquo;s own tokenized protocols, not from a list of names.
+      The 40 watchlist protocols are all on the board; the rest earned their place by size.</p>
+    </div>
+    <dl class="facts" id="facts"></dl>
+  </section>
+
+  <section class="controls" aria-label="Board controls">
+    <div class="field">
+      <label for="search">Search</label>
+      <input id="search" type="search" placeholder="Protocol name or category" autocomplete="off">
+    </div>
+    <div class="field">
+      <label for="category">Category</label>
+      <select id="category"><option value="">All categories</option></select>
+    </div>
+    <div class="field">
+      <label for="chain">Chain</label>
+      <select id="chain"><option value="">All chains</option></select>
+    </div>
+    <div class="tabs" role="group" aria-label="Token status">
+      <button type="button" id="tab-pre" aria-pressed="true">Pre-token</button>
+      <button type="button" id="tab-live" aria-pressed="false">Live token</button>
+    </div>
+    <label class="check"><input type="checkbox" id="watchlist-only"> Watchlist only</label>
+    <p class="count" id="count" aria-live="polite"></p>
+  </section>
+
+  <main class="panel" id="board">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th><button type="button" data-sort="rank">Rank</button></th>
+            <th><button type="button" data-sort="name">Protocol</button></th>
+            <th><button type="button" data-sort="tvl">TVL</button></th>
+            <th><button type="button" data-sort="change_7d">7d</button></th>
+            <th><button type="button" data-sort="age_days">Age</button></th>
+            <th><button type="button" data-sort="implied">Implied value</button></th>
+            <th>Token</th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+      <div class="empty" id="empty" hidden>
+        <p>No protocol matches. Clear the search or the filters.</p>
+        <button type="button" class="button" id="reset">Clear all filters</button>
+      </div>
+    </div>
+  </main>
+
+  <section class="model panel" aria-labelledby="model-title">
+    <h2 id="model-title">How the value is fitted</h2>
+    <p class="formula" id="formula"></p>
+    <div class="fit-grid" id="fit-grid"></div>
+    <div class="scatter" id="scatter"></div>
+    <p class="note">The scatter is the fit itself: each dot is one of the 128 tokenized protocols in the
+    snapshot, log market cap against log growth-adjusted TVL. The line is the fitted power law.
+    The fit is real but noisy (R&sup2; 0.20): it ranks protocols, it does not predict a price.
+    Momentum and age were tested as fitted factors and both failed — momentum&rsquo;s coefficient
+    is unstable across split halves, age adds nothing — so momentum only trims the TVL input and
+    age is a bounded judgment tilt of 0.9 to 1.1, stated as such. Category multipliers are
+    shrunk deviations of value per TVL, capped at 0.7 to 1.4; a category with no tokenized
+    member gets 1.000.</p>
+  </section>
+
+  <footer class="foot">
+    <p>Source: the sealed snapshot of 758 protocols, as of <span id="asof"></span>. &ldquo;Implied
+    value&rdquo; is a model of what a token launch has historically been worth for a protocol of
+    this size and kind. It is not a price, a promise, or a prediction that a token will launch.
+    Farming carries risk: only capital you can lose, on the protocol&rsquo;s own app, and never pay
+    anyone to claim for you.</p>
+  </footer>
+</div>
+
+<dialog class="detail" id="detail" aria-labelledby="detail-title">
+  <div class="detail-head">
+    <div>
+      <p class="sub" id="detail-kicker"></p>
+      <h2 id="detail-title"></h2>
+      <p class="sub" id="detail-sub"></p>
+    </div>
+    <button type="button" class="close" id="detail-close">Close</button>
+  </div>
+  <div class="detail-section">
+    <h3>Implied value, step by step</h3>
+    <div class="equation" id="detail-equation"></div>
+    <p class="note" id="detail-check"></p>
+  </div>
+  <div class="detail-section">
+    <h3>Farm plan</h3>
+    <ol class="steps" id="detail-steps"></ol>
+  </div>
+</dialog>
+
+<script src="../data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
